@@ -1,0 +1,1 @@
+# idealizar-whats-app-manager-api

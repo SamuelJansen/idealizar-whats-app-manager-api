@@ -1,0 +1,22 @@
+print-status: False
+
+email-credentials:
+    email: idealizar@canoas.ifrs.edu
+    password: canoas2021
+
+environment:
+    active-environment:
+        key: ACTIVE_ENVIRONMENT
+        value: local
+    # driver:
+    #     key: DATABASE_DRIVER
+    #     value: ${database.driver}
+    security:
+        key: SECURITY_KEY
+        value: not-secured-at-all
+    # database:
+    #     key: DATABASE_URL
+    #     value: ${database.dialect}+${database.driver}://${database.username}:${database.password}@${database.host}:${database.port}/${database.database}
+    enable-scheduler:
+        key: SCHEDULER_API_ENABLED
+        value: True

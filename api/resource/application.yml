@@ -1,0 +1,49 @@
+print-status: False
+api:
+    name: IdealizarWhatsAppManagerApi
+    extension: yml
+    dependency:
+        update: False
+        list:
+            web: [Popen,Path]
+            local: []
+    list: [globals]
+    language: EN-US
+    git:
+        url: https://github.com/SamuelJansen/
+        extension: git
+
+    security:
+        secret: default
+    server:
+        scheme: https
+        host: 127.0.0.1
+        port: 5050
+        base-url: /idealizar-whats-app-manager-api
+    # database:
+        # dialect: ${DATABASE_DIALECT:}
+        # driver: ${DATABASE_DRIVER:}
+        # database: ${DATABASE_NAME:}
+        # username: ${DATABASE_USERNAME:}
+        # password: ${DATABASE_PASSWORD:}
+        # host: ${DATABASE_HOST:}
+        # port: ${DATABASE_PORT:}
+        # schema: ${DATABASE_SCHEMA:}
+
+swagger:
+    host: ${api.server.host}:${api.server.port}${api.server.base-url}
+    schemes: [${api.server.scheme}]
+    info:
+        title: {api.name}
+        version: 0.0.1
+        description: Riachuelo automating api
+        terms-of-service: http://swagger.io/terms/
+        contact:
+            name: Samuel Jansen
+            email: samuel.jansenn@gmail.com
+        license:
+            name: Apache 2.0 / MIT License
+            url: http://www.apache.org/licenses/LICENSE-2.0.html
+
+python:
+    version: 3.9

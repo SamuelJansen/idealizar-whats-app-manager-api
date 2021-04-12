@@ -28,6 +28,7 @@ share/python-wheels/
 MANIFEST
 
 IdealizarWhatsAppManagerApi.db
+local-config.yml
 
 # PyInstaller
 #  Usually these files are written by a python script from a template

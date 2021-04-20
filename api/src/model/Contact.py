@@ -2,9 +2,7 @@ from python_helper import ObjectHelper, StringHelper
 from python_framework import SqlAlchemyProxy as sap
 from ModelAssociation import CONTACT, MODEL
 
-from sqlalchemy import Boolean
-sap.Boolean = Boolean
-
+import ContactType, ContactStatus
 import ContactConstants
 import DateTimeUtil
 
@@ -42,8 +40,8 @@ class Contact(MODEL):
         self.key = key
         self.createdAt = getGivenOrDefault(DateTimeUtil.forcedlyGetDateTime(createdAt), DateTimeUtil.dateTimeNow())
         self.updatedAt = getGivenOrDefault(DateTimeUtil.forcedlyGetDateTime(updatedAt), DateTimeUtil.dateTimeNow())
-        self.type = getGivenOrDefault(type, ContactConstants.DEFAULT_TYPE)
-        self.status = getGivenOrDefault(status, ContactConstants.DEFAULT_STATUS)
+        self.type = getGivenOrDefault(ContactType.ContactType.map(type), ContactConstants.DEFAULT_TYPE)
+        self.status = getGivenOrDefault(ContactStatus.ContactStatus.map(status), ContactConstants.DEFAULT_STATUS)
         self.name = name
 
     def __repr__(self):

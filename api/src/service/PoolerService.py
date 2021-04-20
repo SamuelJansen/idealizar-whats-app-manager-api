@@ -11,15 +11,19 @@ from PoolingStatus import PoolingStatus
 import Message, MessageConstants
 import Session
 
-import ContactDto
+import GoogleSearchConstants
+
+import PoolerDto, ContactDto
 
 WHATS_APP_URL = "https://web.whatsapp.com/"
 
-XPATH_IDEALIZAR_STUDENT_GROUP = '//div//div//span[@title="Idealizar SandBox - Test"]' ###- Idealizar - Estudantes ###- Groups
-XPATH_IDEALIZAR_BIRDMESSAGE_SANDBOX_GROUP = '//div//div//span//span[@title="+44 7418 310508"]' ###- Idealizar SandBox ###- Contact
+# XPATH_IDEALIZAR_STUDENT_GROUP = '//div//div//span[@title="Idealizar SandBox - Test"]' ###- Idealizar - Estudantes ###- Groups
+# XPATH_IDEALIZAR_BIRDMESSAGE_SANDBOX_GROUP = '//div//div//span//span[@title="+44 7418 310508"]' ###- Idealizar SandBox ###- Contact
+
 XPATH_GROUP_MESSAGE_SECTION = '//div//div//div[@aria-label="Message list. Press right arrow key on a message to open message context menu."]'
 XPATH_GROUP_MESSAGE_LIST = '//div[contains(@class,"focusable-list-item")]'
 XPATH_TEXT_BOX = '//div//div//div[@contenteditable="true"]'
+XPATH_SEND_IMAGE = '//div//div//span[@data-icon="send"]'
 
 CLASS_MESSAGE_OWNER = 'copyable-text'
 CLASS_PARTIAL_MESSAGE_CONTENT = 'selectable-text copyable-text'
@@ -37,119 +41,163 @@ class PoolerService:
     booting = PoolerConstants.DEFAULT_BROWSER_BOOTING_VALUE
     available = PoolerConstants.DEFAULT_AVAILABLE_STATUS
 
-    @ServiceMethod(requestClass=[ContactDto.ContactPoolerRequestDto, ContactDto.ContactPoolerRequestDto])
-    def poolMessagesFromOriginToDestiny(self, originDto, destinyDto) :
-        self.validatro.contact.validateRequestDto(originDto, destinyDto)
-        print(originDto, destinyDto)
-
     @ServiceMethod()
-    def poolGroupMessages(self) :
+    def inteigentLoop(self) :
+        contactList = self.repository.contact.findAllByKeyIn([
+            '+55 51 8029-8228',
+            # '+55 51 8060-3925',
+            # '+55 51 8559-9625',
+            # '+55 51 9473-4741',
+            # '+55 51 9871-9575',
+            # '+55 51 9896-1495'
+        ])
+        idealizarGroup = self.repository.contact.findByKey('Idealizar - Estudantes')
+        messageBird = self.repository.contact.findByKey('+44 7418 310508')
+        for contact in contactList :
+            try :
+                self.poolMessagesFromOriginToDestiny(
+                    self.mapper.contact.fromModelToRequestDto(contact),
+                    self.mapper.contact.fromModelToRequestDto(idealizarGroup)
+                )
+            except Exception as exception :
+                log.error(self.inteigentLoop, f'Not possible to pool messages from {[c.name for c in contactList]} to {idealizarGroup.name} properly', exception)
+        try :
+            self.poolMessagesFromOriginToDestiny(
+                self.mapper.contact.fromModelToRequestDto(idealizarGroup),
+                self.mapper.contact.fromModelToRequestDto(messageBird)
+            )
+        except Exception as exception :
+            log.error(self.inteigentLoop, f'Not possible to pool messages from {idealizarGroup.name} to {messageBird.name}', exception)
+
+    @ServiceMethod(requestClass=[ContactDto.ContactRequestDto, ContactDto.ContactRequestDto])
+    def poolMessagesFromOriginToDestiny(self, origin, destiny) :
         self.openBrowserIfNedded(WHATS_APP_URL)
         if self.browserIsAvailable() :
             self.available = False
-            xPathOrigin = XPATH_IDEALIZAR_BIRDMESSAGE_SANDBOX_GROUP
-            # xPathOriginMessageList = XPATH_GROUP_MESSAGE_LIST
-            xPathDestiny = XPATH_IDEALIZAR_STUDENT_GROUP
-            # xPathDestinyMessageList = XPATH_GROUP_MESSAGE_LIST
+            log.debug(self.poolMessagesFromOriginToDestiny, f'pooling messages from {origin.key} to {destiny.key}')
+            didAccessOrigin = self.safellyAccess(self.helper.whatsApp.getContactConversationXPath(origin))
+            if didAccessOrigin :
+                messageList = self.client.browser.findAllByXPath(XPATH_GROUP_MESSAGE_LIST, self.browser)
+                messageDictionary = {}
+                lastOwner = MessageConstants.UNKNOWN_OWNER
+                modelCreateList = []
+                modelDictionary = {}
+                try :
+                    for message in messageList :
+                        errorList = []
+                        messageId = self.safellyGetMessageId(errorList, message=message)
+                        if ObjectHelper.isNotNone(messageId) :
+                            modelDictionary[messageId] = message
+                        # else :
+                        #     ownerContent = self.safellyGetOwnerContent(errorList, message=message)
+                        #     owner = self.safellyGetOwner(errorList, lastOwner, ownerContent=ownerContent)
+                        #     html = self.safellyGetAttribute(errorList, 'innerHTML', message=message)
+                        #     originalAsText = self.safellyGetOriginalAsText(errorList, message=message)
+                        #     content = self.safellyGetContent(errorList, message=message, html=html)
+                        #     self.service.message.create(
+                        #         Message.Message(
+                        #             messageId = messageId,
+                        #             pooledAt = DateTimeUtil.dateTimeNow(),
+                        #             owner = owner,
+                        #             content = content,
+                        #             ownerContent = ownerContent,
+                        #             originalAsText = originalAsText,
+                        #             originalAsHtml = html,
+                        #             poolingStatus = PoolingStatus.POOLING,
+                        #             errorCount = len(errorList)
+                        #         )
+                        #     )
+                    newMessageIdList = self.service.message.filterNewOnes(list(modelDictionary.keys()))
 
-            while True :
-                # xPathOrigin, xPathOriginMessageList, xPathDestiny, xPathDestinyMessageList = xPathDestiny, xPathDestinyMessageList, xPathOrigin, xPathOriginMessageList
-                xPathOrigin, xPathDestiny = self.swap(xPathOrigin, xPathDestiny)
-                didAccessOrigin = self.safellyAccess(xPathOrigin)
-                if didAccessOrigin :
-                    messageList = self.client.browser.findAllByXPath(XPATH_GROUP_MESSAGE_LIST, self.browser)
-                    messageDictionary = {}
-                    lastOwner = MessageConstants.UNKNOWN_OWNER
-                    modelCreateList = []
-                    modelDictionary = {}
-                    try :
-                        for message in messageList :
-                            errorList = []
-                            messageId = self.safellyGetMessageId(errorList, message=message)
-                            if ObjectHelper.isNotNone(messageId) :
-                                modelDictionary[messageId] = message
-                            # else :
-                            #     ownerContent = self.safellyGetOwnerContent(errorList, message=message)
-                            #     owner = self.safellyGetOwner(errorList, lastOwner, ownerContent=ownerContent)
-                            #     html = self.safellyGetAttribute(errorList, 'innerHTML', message=message)
-                            #     originalAsText = self.safellyGetOriginalAsText(errorList, message=message)
-                            #     content = self.safellyGetContent(errorList, message=message, html=html)
-                            #     self.service.message.create(
-                            #         Message.Message(
-                            #             messageId = messageId,
-                            #             pooledAt = DateTimeUtil.dateTimeNow(),
-                            #             owner = owner,
-                            #             content = content,
-                            #             ownerContent = ownerContent,
-                            #             originalAsText = originalAsText,
-                            #             originalAsHtml = html,
-                            #             poolingStatus = PoolingStatus.POOLING,
-                            #             errorCount = len(errorList)
-                            #         )
-                            #     )
-                        newMessageIdList = self.service.message.filterNewOnes(list(modelDictionary.keys()))
-
-                        for collectedMessageId, message in modelDictionary.items() :
-                            # log.prettyPython(self.poolGroupMessages, "message", message.text, logLevel=log.DEBUG)
-                            errorList = []
-                            messageId = self.safellyGetMessageId(errorList, message=message)
-                            if messageId in newMessageIdList or messageId.startswith(MessageConstants.ERROR_ID_STARTS_WITH) :
-                                isPoolerMessage = self.safellyGetIsPoolerMessage(errorList, message=message)
-                                ownerContent = self.safellyGetOwnerContent(errorList, message=message)
-                                html = self.safellyGetAttribute(errorList, 'innerHTML', message=message)
-                                owner = self.safellyGetOwner(errorList, lastOwner, ownerContent=ownerContent)
-                                content = self.safellyGetContent(errorList, message=message, html=html)
-                                originalAsText = self.safellyGetOriginalAsText(errorList, message=message)
-                                model = Message.Message(
-                                    messageId = messageId,
-                                    pooledAt = DateTimeUtil.dateTimeNow(),
-                                    isPoolerMessage = self.safellyGetIsPoolerMessage(errorList, message=message),
-                                    owner = owner,
-                                    content = self.safellyGetContent(errorList, message=message, html=html),
-                                    ownerContent = ownerContent,
-                                    originalAsText = originalAsText,
-                                    originalAsHtml = html,
-                                    poolingStatus = PoolingStatus.POOLING,
-                                    errorCount = len(errorList),
-                                    errorListAsJson = Serializer.jsonifyIt(errorList)
-                                )
-                                modelCreateList.append(model)
-                                lastOwner = owner if ObjectHelper.isNotNone(owner) else lastOwner
-                        self.service.message.createAll(modelCreateList)
-                    except Exception as exception :
-                        log.error(self.poolGroupMessages, f'Not possible to poll messages from {xPathOrigin} to {xPathDestiny}', exception)
-                    log.prettyPython(self.poolGroupMessages, "modelCreateList", modelCreateList, logLevel=log.DEBUG)
-                    try :
-                        didAccessDestiny = self.safellyAccess(xPathDestiny)
-                        if didAccessDestiny :
-                            textBox = self.client.browser.findAllByXPath(XPATH_TEXT_BOX,  self.browser)[-1]
-                            self.client.browser.access(textBox)
-                            modelUpdateList = []
-                            for model in modelCreateList :
-                                if self.isNewMessage(model) :
-                                    errorList = []
-                                    # self.client.browser.typeIn(f'''{model.owner} - {model.content}''', textBox)
-                                    self.safellyTypeInAndHitEnter(errorList, model, textBox)
-                                    model.poolingStatus = PoolingStatus.SUCCESS if ObjectHelper.isEmpty(errorList) else PoolingStatus.ERROR_DELIVERING
-                                    model.errorCount += len(errorList)
-                                    model.errorListAsJson += f' {c.OPEN_LIST}{model.errorListAsJson}, {Serializer.jsonifyIt(errorList)}{c.CLOSE_LIST}'
-                                    modelUpdateList.append(model)
-                            self.service.message.updateAll(modelUpdateList)
-                    except Exception as exception :
-                        log.error(self.poolGroupMessages, f'Not possible to deliver messages from {xPathOrigin} to {xPathDestiny}', exception)
+                    for collectedMessageId, message in modelDictionary.items() :
+                        # log.prettyPython(self.poolMessagesFromOriginToDestiny, "message", message.text, logLevel=log.DEBUG)
+                        errorList = []
+                        messageId = self.safellyGetMessageId(errorList, message=message)
+                        if messageId in newMessageIdList or messageId.startswith(MessageConstants.ERROR_ID_STARTS_WITH) :
+                            isPoolerMessage = self.safellyGetIsPoolerMessage(errorList, message=message)
+                            ownerContent = self.safellyGetOwnerContent(errorList, message=message)
+                            html = self.safellyGetAttribute(errorList, 'innerHTML', message=message)
+                            owner = self.safellyGetOwner(errorList, lastOwner, ownerContent=ownerContent)
+                            content = self.safellyGetContent(errorList, message=message, html=html)
+                            poolingStatus = self.safellyGetPoolingStatus(errorList, content=content)
+                            originalAsText = self.safellyGetOriginalAsText(errorList, message=message)
+                            model = Message.Message(
+                                messageId = messageId,
+                                pooledAt = DateTimeUtil.dateTimeNow(),
+                                isPoolerMessage = isPoolerMessage,
+                                owner = owner,
+                                content = content,
+                                ownerContent = ownerContent,
+                                originalAsText = originalAsText,
+                                originalAsHtml = html,
+                                poolingStatus = poolingStatus,
+                                errorCount = len(errorList),
+                                errorListAsJson = Serializer.jsonifyIt(errorList)
+                            )
+                            modelCreateList.append(model)
+                            lastOwner = owner if ObjectHelper.isNotNone(owner) else lastOwner
+                    self.service.message.createAll(modelCreateList)
+                except Exception as exception :
+                    log.error(self.poolMessagesFromOriginToDestiny, f'Not possible to poll messages from {origin.key} to {destiny.key}', exception)
+                log.prettyPython(self.poolMessagesFromOriginToDestiny, "modelCreateList", modelCreateList, logLevel=log.DEBUG)
+                modelUpdateList = []
+                try :
+                    textBox = self.client.browser.findAllByXPath(XPATH_TEXT_BOX,  self.browser)[-1]
+                    self.client.browser.access(textBox)
+                    for model in modelCreateList :
+                        if self.isGoogleSearch(model) :
+                            googleSearchDtoList = self.service.googleSearch.search(StringHelper.join(model.content.split()[2:], character=c.SPACE))
+                            for googleSearchDto in googleSearchDtoList :
+                                errorList = []
+                                self.safellyTypeInAndHitEnter(errorList, model, googleSearchDto.suggestedText, textBox)
+                                self.pasteScreenshot(googleSearchDto.screenshotName, element=textBox)
+                                self.safellyAccess(XPATH_SEND_IMAGE)
+                                self.client.browser.access(textBox)
+                            model.poolingStatus = PoolingStatus.SUCCESS if ObjectHelper.isEmpty(errorList) else PoolingStatus.ERROR_DELIVERING
+                            model.errorCount += len(errorList)
+                            model.errorListAsJson += f' {c.OPEN_LIST}{model.errorListAsJson}, {Serializer.jsonifyIt(errorList)}{c.CLOSE_LIST}'
+                            modelUpdateList.append(model)
+                except Exception as exception :
+                    log.error(self.poolMessagesFromOriginToDestiny, f'Not possible to answare google query from {origin.key} to {origin.key}', exception)
+                try :
+                    didAccessDestiny = self.safellyAccess(self.helper.whatsApp.getContactConversationXPath(destiny))
+                    if didAccessDestiny :
+                        textBox = self.client.browser.findAllByXPath(XPATH_TEXT_BOX,  self.browser)[-1]
+                        self.client.browser.access(textBox)
+                        for model in modelCreateList :
+                            if self.isNewMessage(model) :
+                                errorList = []
+                                self.safellyTypeInAndHitEnter(errorList, model, model.content, textBox)
+                                model.poolingStatus = PoolingStatus.SUCCESS if ObjectHelper.isEmpty(errorList) else PoolingStatus.ERROR_DELIVERING
+                                model.errorCount += len(errorList)
+                                model.errorListAsJson += f' {c.OPEN_LIST}{model.errorListAsJson}, {Serializer.jsonifyIt(errorList)}{c.CLOSE_LIST}'
+                                modelUpdateList.append(model)
+                        self.service.message.updateAll(modelUpdateList)
+                except Exception as exception :
+                    log.error(self.poolMessagesFromOriginToDestiny, f'Not possible to deliver messages from {origin.key} to {destiny.key}', exception)
             self.available = True
 
-    @ServiceMethod(requestClass=[[str], Message.Message])
-    def safellyTypeInAndHitEnter(self, errorList, model, textBox=None) :
+    @ServiceMethod(requestClass=[PoolerDto.PoolerRequestDto])
+    def poolMessages(self, dto) :
+        self.validator.pooler.validateRequestDtoExists(dto)
+        self.poolMessagesFromOriginToDestiny(dto.originContactDto, dto.destinyContactDto)
+
+    @ServiceMethod(requestClass=[[str], Message.Message, str])
+    def safellyTypeInAndHitEnter(self, errorList, model, content, textBox=None) :
         try :
-            self.client.browser.typeInAndHitEnter(f'''{model.owner} - {model.content}''', textBox)
+            content = content if ObjectHelper.isNotNone(content) else model.content
+            self.client.browser.typeInAndHitEnter(f'''{model.content} - {content}''', textBox)
         except Exception as exception :
             errorList.append(str(exception))
             log.failure(self.safellyTypeInAndHitEnter, 'Failure', exception=exception)
 
     @ServiceMethod(requestClass=[Message.Message])
     def isNewMessage(self, model) :
-        return not model.isPoolerMessage and 0 == model.errorCount
+        return not model.isPoolerMessage and 0 == model.errorCount and PoolingStatus.POOLING == model.poolingStatus
+
+    @ServiceMethod(requestClass=[Message.Message])
+    def isGoogleSearch(self, model) :
+        return not model.isPoolerMessage and 0 == model.errorCount and PoolingStatus.GOOGLE_SEARCHING == model.poolingStatus
 
     @ServiceMethod(requestClass=[[str]])
     def safellyGetIsPoolerMessage(self, errorList, message=None) :
@@ -185,7 +233,7 @@ class PoolerService:
             )
         except Exception as exception :
             errorList.append(str(exception))
-            log.failure(self.safellyGetOwnerContent, 'Failure', exception=exception)
+            log.failure(self.safellyGetOwnerContent, f'Not posible to get owner content from {message.text}', exception=exception)
         return ownerContent
 
     @ServiceMethod(requestClass=[[str], str])
@@ -224,6 +272,19 @@ class PoolerService:
             log.failure(self.safellyGetContent, 'Failure', exception=exception)
         return content
 
+    @ServiceMethod(requestClass=[[str]])
+    def safellyGetPoolingStatus(self, errorList, content=None) :
+        poolingStatus = None
+        try :
+            if ObjectHelper.isNone(content) :
+                poolingStatus = PoolingStatus.ERROR_POOLING
+            else :
+                poolingStatus = PoolingStatus.GOOGLE_SEARCHING if content.lower().startswith(GoogleSearchConstants.SEARCH_KEYWORD) else PoolingStatus.POOLING
+        except Exception as exception :
+            errorList.append(str(exception))
+            log.failure(self.safellyGetPoolingStatus, f'Not possible to evaluate PoolingStatus from {content} properlly', exception=exception)
+        return poolingStatus
+
     def safellyGetAttribute(self, errorList, attributeName, message=None) :
         attributeValue = None
         try :
@@ -257,6 +318,8 @@ class PoolerService:
             )
             self.client.browser.accessUrl(url, self.browser)
             time.sleep(AUTHENTICATION_TIME_OUT)
+            self.client.browser.screeshotWebPage('QRCode.png', url, self.browser)
+            time.sleep(AUTHENTICATION_TIME_OUT)
             self.booting = False
             self.available = True
 
@@ -273,10 +336,6 @@ class PoolerService:
         # print(f'self.browserIsAvailable: {self.available}')
         return self.browserIsBooted() and self.available
 
-    @ServiceMethod()
-    def swap(self, xPathOrigin, xPathDestiny) :
-        return xPathDestiny, xPathOrigin
-
     @ServiceMethod(requestClass=[str])
     def safellyAccess(self, xPath) :
         didAccess = False
@@ -287,6 +346,9 @@ class PoolerService:
             log.failure(self.safellyAccess, f'Not possible to access {xPath}', exception=exception)
         return didAccess
 
+    @ServiceMethod(requestClass=[str])
+    def pasteScreenshot(self, screenshotName, element=None) :
+        self.client.browser.pasteToBrowser(screenshotName, self.browser, element=element)
 
 
 

@@ -40,14 +40,33 @@ class ContactRepository:
         self.repository.session.commit()
         return modelList
 
-    def existsByKeyAndByType(self, key, type) :
+    def existsByKeyAndByTypeAndByStatus(self, key, modelType, modelStatus) :
         objectExists = self.repository.session.query(
             sap.exists().where(
                 sap.and_(
                     self.model.key == key,
-                    self.model.type == type
+                    sap.and_(
+                        self.model.type == modelType,
+                        self.model.status == modelStatus
+                    )
                 )
+
             )
         ).one()[0]
         self.repository.session.commit()
         return objectExists
+
+    def findByKeyAndByStatus(self, key, modelStatus) :
+        model = self.repository.session.query(self.model).filter(
+            sap.and_(
+                self.model.key == key,
+                self.model.status == modelStatus
+            )
+        ).first()
+        self.repository.session.commit()
+        return model
+
+    def findAllByKeyIn(self, keyList) :
+        featureList = self.repository.session.query(self.model).filter(self.model.key.in_(keyList)).all()
+        self.repository.session.commit()
+        return featureList

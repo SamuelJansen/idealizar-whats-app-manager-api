@@ -4,6 +4,7 @@ from python_framework import Enum, EnumItem
 class PoolingStatusEnumeration :
     NONE = EnumItem()
     POOLING = EnumItem()
+    GOOGLE_SEARCHING = EnumItem()
     ERROR_POOLING = EnumItem()
     ERROR_DELIVERING = EnumItem()
     SUCCESS = EnumItem()

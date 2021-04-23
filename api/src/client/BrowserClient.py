@@ -44,7 +44,7 @@ class BrowserClient:
         return chromeOptions
 
     @ClientMethod()
-    def getNewBrowser(self, options=None) :
+    def getNewBrowser(self, options=None, hidden=False) :
         options = options if ObjectHelper.isNotNone(options) else self.getBrowserOptions()
         browser = DEFAULT_BOWSER_CLASS(ChromeDriverManager().install(), chrome_options=options)
         browser.execute_cdp_cmd('Network.setUserAgentOverride', {"userAgent": 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.53 Safari/537.36'})
@@ -113,6 +113,21 @@ class BrowserClient:
         # actions.key_up(Keys.CONTROL)
         # element.send_keys(Keys.ENTER)
         # ActionChains(driver).key_down(Keys.CONTROL, element).send_keys('v').key_up(Keys.CONTROL, element).perform()
+
+    @ClientMethod(requestClass=[DEFAULT_BOWSER_CLASS]) ###- WebElement
+    def hitControF5(self, browser) :
+        # body = browser.find_element_by_tag_name('body')
+        # webdriver.ActionChains(browser).key_down(Keys.CONTROL, body).send_keys(Keys.F5).key_up(Keys.CONTROL, body).perform()
+        browser.switch_to.window(browser.current_window_handle)
+        KeyboardUtil.ctrlF5()
+        # browser.refresh()
+
+    @ClientMethod(requestClass=[DEFAULT_BOWSER_CLASS]) ###- WebElement
+    def hitF5(self, browser) :
+        # body = browser.find_element_by_tag_name('body')
+        # webdriver.ActionChains(browser).key_down(Keys.CONTROL, body).send_keys(Keys.F5).key_up(Keys.CONTROL, body).perform()
+        # KeyboardUtil.ctrlF5()
+        browser.refresh()
 
     @ClientMethod(requestClass=[str, DEFAULT_BOWSER_CLASS])
     def getAttribute(self, attributeName, element) :

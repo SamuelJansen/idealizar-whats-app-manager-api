@@ -17,9 +17,10 @@ api:
         secret: default
     server:
         scheme: https
-        host: 127.0.0.1
-        port: 5050
+        host: 0.0.0.0
+        port: 5500
         base-url: /idealizar-whats-app-manager-api
+        complete-url: ${api.server.scheme}://${api.server.host}:${api.server.port}${api.server.base-url}
     # database:
         # dialect: ${DATABASE_DIALECT:}
         # driver: ${DATABASE_DRIVER:}

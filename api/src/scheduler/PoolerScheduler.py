@@ -10,6 +10,6 @@ class PoolerScheduler :
     # @SchedulerMethod('interval', seconds=10, max_instances=2)
     def whatsAppPooler(self) :
         # log.debug(self.whatsAppPooler, 'starded')
-        self.service.pooler.inteigentLoop()
+        # self.service.pooler.inteigentLoop()
         # log.debug(self.whatsAppPooler, 'ended')
         ...

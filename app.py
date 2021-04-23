@@ -1,11 +1,11 @@
 import globals
 globalsInstance = globals.newGlobalsInstance(__file__
-    , settingStatus = True
+    , settingStatus=True
     , successStatus = True
     , errorStatus = True
     , debugStatus = True
     , failureStatus = True
-
+    #
     , warningStatus = True
     # , wrapperStatus = True
     # , logStatus = True
@@ -21,9 +21,8 @@ jwt = IdealizarWhatsAppManagerApi.jwt
 from python_helper import Constant as c
 from python_helper import EnvironmentHelper
 from flask_apscheduler import APScheduler
-# initialize scheduler
-scheduler = APScheduler()
-# if you don't wanna use a config, you can set options here:
+
+scheduler = APScheduler(app=app)
 scheduler.api_enabled = True if c.TRUE == EnvironmentHelper.get('SCHEDULER_API_ENABLED') else False
 scheduler.init_app(app)
 scheduler.start()
@@ -42,7 +41,6 @@ def runFlaskApplication(app):
 
 if __name__ == '__main__' :
     runFlaskApplication(app)
-
 
 # api.scheduler.shutdown(shutdown_threadpool=False)
 import atexit

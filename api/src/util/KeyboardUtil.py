@@ -105,5 +105,11 @@ def ctrlV() :
     pyautogui.keyUp('ctrl')
     pyautogui.keyUp('enter')
 
+def ctrlF5() :
+    pyautogui.keyDown('ctrl')
+    pyautogui.press('f5')
+    pyautogui.keyUp('ctrl')
+    pyautogui.keyUp('enter')
+
 def esc() :
     pyautogui.press('esc')

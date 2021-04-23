@@ -5,9 +5,11 @@ import Session
 @Service()
 class SessionService:
 
-    @ServiceMethod(requestClass=[Session.Session])
-    def create(self, model) :
-        return self.repository.message.save(model)
+    @ServiceMethod(requestClass=[str, str])
+    def create(self, sessionId, commandExecutor) :
+        return self.repository.session.save(
+            Session.Session(sessionId=sessionId, commandExecutor=commandExecutor)
+        )
 
     @ServiceMethod()
     def findMostRecent(self) :

@@ -1,7 +1,7 @@
 import time
 from python_helper import Constant as c
 from python_helper import ObjectHelper, log, StringHelper
-from python_framework import Client, ClientMethod
+from python_framework import SimpleClient, SimpleClientMethod
 
 from selenium import webdriver
 from webdriver_manager.chrome import ChromeDriverManager
@@ -21,10 +21,10 @@ DEFAULT_WEBDRIVER_TIMEOUT_FRACTION = DEFAULT_WEBDRIVER_TIMEOUT / 50
 
 DEFAULT_BOWSER_CLASS = webdriver.Chrome
 
-@Client()
+@SimpleClient()
 class BrowserClient:
 
-    @ClientMethod()
+    @SimpleClientMethod()
     def getBrowserOptions(self, anonymous=False, deteach=True) :
         chromeOptions = webdriver.ChromeOptions()
         chromeOptions.add_argument('--ignore-certificate-errors')
@@ -43,7 +43,7 @@ class BrowserClient:
             chromeOptions.add_experimental_option('detach', True)
         return chromeOptions
 
-    @ClientMethod()
+    @SimpleClientMethod()
     def getNewBrowser(self, options=None, hidden=False) :
         options = options if ObjectHelper.isNotNone(options) else self.getBrowserOptions()
         browser = DEFAULT_BOWSER_CLASS(ChromeDriverManager().install(), chrome_options=options)
@@ -53,11 +53,11 @@ class BrowserClient:
         log.debug(self.getNewBrowser, f'command_executor: {browser.command_executor._url}')
         return browser
 
-    @ClientMethod()
+    @SimpleClientMethod()
     def getNewAnonymousBrowser(self) :
         return self.getNewBrowser(options=self.getBrowserOptions(anonymous=True))
 
-    @ClientMethod(requestClass=[str, DEFAULT_BOWSER_CLASS])
+    @SimpleClientMethod(requestClass=[str, DEFAULT_BOWSER_CLASS])
     def accessUrl(self, url, browser) :
         try :
             browser.get(url)
@@ -67,43 +67,43 @@ class BrowserClient:
             time.sleep(DEFAULT_WEBDRIVER_LARGE_TIMEOUT)
         return browser
 
-    @ClientMethod(requestClass=[str])
+    @SimpleClientMethod(requestClass=[str])
     def openInNewBrowser(self, url) :
         if ObjectHelper.isNotNone(url) :
             browser = self.getNewBrowser()
             return self.accessUrl(url, browser)
 
-    @ClientMethod(requestClass=[str])
+    @SimpleClientMethod(requestClass=[str])
     def openInNewAnonymousBrowser(self, url) :
         if ObjectHelper.isNotNone(url) :
             browser = self.getNewAnonymousBrowser()
             return self.accessUrl(url, browser)
 
-    @ClientMethod(requestClass=[str, DEFAULT_BOWSER_CLASS])
+    @SimpleClientMethod(requestClass=[str, DEFAULT_BOWSER_CLASS])
     def openInNewTab(self, url, browser):
         if ObjectHelper.isNotNone(url) :
             self.newTab(browser)
             return self.accessUrl(url, browser)
 
-    @ClientMethod(requestClass=[DEFAULT_BOWSER_CLASS])
+    @SimpleClientMethod(requestClass=[DEFAULT_BOWSER_CLASS])
     def newTab(self, browser) :
         browser.execute_script("window.open();")
         time.sleep(DEFAULT_WEBDRIVER_TIMEOUT)
         browser.switch_to.window(browser.window_handles[-1])
         time.sleep(DEFAULT_WEBDRIVER_TIMEOUT_FRACTION)
 
-    @ClientMethod(requestClass=[str])
+    @SimpleClientMethod(requestClass=[str])
     def typeIn(self, text, element=None) :
         element.send_keys(Keys.CONTROL, 'a')
         element.send_keys(text)
 
-    @ClientMethod(requestClass=[str])
+    @SimpleClientMethod(requestClass=[str])
     def typeInAndHitEnter(self, text, element=None) :
         self.typeIn(text, element=element)
         element.send_keys(Keys.ENTER)
         time.sleep(DEFAULT_WEBDRIVER_TIMEOUT_FRACTION)
 
-    @ClientMethod(requestClass=[DEFAULT_BOWSER_CLASS])
+    @SimpleClientMethod(requestClass=[DEFAULT_BOWSER_CLASS])
     def hitControlV(self, browser, element=None) :
         webdriver.ActionChains(browser).key_down(Keys.CONTROL, element).send_keys('v').key_up(Keys.CONTROL, element).perform()
         time.sleep(DEFAULT_WEBDRIVER_TIMEOUT_FRACTION)
@@ -114,7 +114,7 @@ class BrowserClient:
         # element.send_keys(Keys.ENTER)
         # ActionChains(driver).key_down(Keys.CONTROL, element).send_keys('v').key_up(Keys.CONTROL, element).perform()
 
-    @ClientMethod(requestClass=[DEFAULT_BOWSER_CLASS]) ###- WebElement
+    @SimpleClientMethod(requestClass=[DEFAULT_BOWSER_CLASS]) ###- WebElement
     def hitControF5(self, browser) :
         # body = browser.find_element_by_tag_name('body')
         # webdriver.ActionChains(browser).key_down(Keys.CONTROL, body).send_keys(Keys.F5).key_up(Keys.CONTROL, body).perform()
@@ -122,41 +122,41 @@ class BrowserClient:
         KeyboardUtil.ctrlF5()
         # browser.refresh()
 
-    @ClientMethod(requestClass=[DEFAULT_BOWSER_CLASS]) ###- WebElement
+    @SimpleClientMethod(requestClass=[DEFAULT_BOWSER_CLASS]) ###- WebElement
     def hitF5(self, browser) :
         # body = browser.find_element_by_tag_name('body')
         # webdriver.ActionChains(browser).key_down(Keys.CONTROL, body).send_keys(Keys.F5).key_up(Keys.CONTROL, body).perform()
         # KeyboardUtil.ctrlF5()
         browser.refresh()
 
-    @ClientMethod(requestClass=[str, DEFAULT_BOWSER_CLASS])
+    @SimpleClientMethod(requestClass=[str, DEFAULT_BOWSER_CLASS])
     def getAttribute(self, attributeName, element) :
         return element.get_attribute(attributeName)
 
-    @ClientMethod(requestClass=[str, DEFAULT_BOWSER_CLASS])
+    @SimpleClientMethod(requestClass=[str, DEFAULT_BOWSER_CLASS])
     def findByXPath(self, xPath, browser) :
         element = browser.find_element_by_xpath(xPath)
         time.sleep(DEFAULT_WEBDRIVER_TIMEOUT_FRACTION)
         return element
 
-    @ClientMethod(requestClass=[str, DEFAULT_BOWSER_CLASS])
+    @SimpleClientMethod(requestClass=[str, DEFAULT_BOWSER_CLASS])
     def findAllByXPath(self, xPath, browser) :
         elementList = browser.find_elements_by_xpath(xPath)
         time.sleep(DEFAULT_WEBDRIVER_TIMEOUT_FRACTION)
         return elementList
 
-    @ClientMethod(requestClass=[str, DEFAULT_BOWSER_CLASS])
+    @SimpleClientMethod(requestClass=[str, DEFAULT_BOWSER_CLASS])
     def accessByXPath(self, xPath, browser) :
         element = self.findByXPath(xPath, browser)
         self.access(element)
 
-    @ClientMethod(requestClass=[DEFAULT_BOWSER_CLASS])
+    @SimpleClientMethod(requestClass=[DEFAULT_BOWSER_CLASS])
     def access(self, element) :
         element.click()
         time.sleep(DEFAULT_WEBDRIVER_TIMEOUT)
         return element
 
-    @ClientMethod(requestClass=[str, DEFAULT_BOWSER_CLASS])
+    @SimpleClientMethod(requestClass=[str, DEFAULT_BOWSER_CLASS])
     def findByClass(self, className, browser) :
         if c.SPACE in className :
             return self.findByCss(StringHelper.join([c.NOTHING, *className.split()], character=c.DOT), browser)
@@ -164,19 +164,19 @@ class BrowserClient:
         time.sleep(DEFAULT_WEBDRIVER_TIMEOUT_FRACTION)
         return element
 
-    @ClientMethod(requestClass=[str, DEFAULT_BOWSER_CLASS])
+    @SimpleClientMethod(requestClass=[str, DEFAULT_BOWSER_CLASS])
     def findByCss(self, css, browser) :
         element = browser.find_element_by_css_selector(css)
         time.sleep(DEFAULT_WEBDRIVER_TIMEOUT_FRACTION)
         return element
 
-    @ClientMethod(requestClass=[str, DEFAULT_BOWSER_CLASS])
+    @SimpleClientMethod(requestClass=[str, DEFAULT_BOWSER_CLASS])
     def findByPartialClass(self, partialClass, browser, html=None) :
         elementList = self.findAllClassByPartialClass(partialClass, browser, html=html)
         if 1 <= len(elementList) :
             return elementList[0]
 
-    @ClientMethod(requestClass=[str, DEFAULT_BOWSER_CLASS])
+    @SimpleClientMethod(requestClass=[str, DEFAULT_BOWSER_CLASS])
     def findAllClassByPartialClass(self, partialClass, browser, html=None) :
         # print(f'partialClass: {partialClass}')
         # print(browser.get_attribute('innerHTML'))
@@ -192,24 +192,24 @@ class BrowserClient:
         # return [self.findByClass(str(StringHelper.join(soupElement.attrs['class'], character=c.SPACE)), browser) for soupElement in soupElementList]
         return [self.findByClass(str(StringHelper.join(soupElement.attrs['class'], character=c.SPACE)), browser) for soupElement in soupElementList]
 
-    @ClientMethod(requestClass=[DEFAULT_BOWSER_CLASS])
+    @SimpleClientMethod(requestClass=[DEFAULT_BOWSER_CLASS])
     def acceptAlert(self, browser):
         alert = browser.switch_to.alert
         alert.accept()
         time.sleep(DEFAULT_WEBDRIVER_TIMEOUT)
 
-    @ClientMethod(requestClass=[DEFAULT_BOWSER_CLASS])
+    @SimpleClientMethod(requestClass=[DEFAULT_BOWSER_CLASS])
     def maximize(self, browser) :
         browser.maximize_window()
 
-    @ClientMethod(requestClass=[DEFAULT_BOWSER_CLASS])
+    @SimpleClientMethod(requestClass=[DEFAULT_BOWSER_CLASS])
     def close(self, browser) :
         try :
             browser.close()
         except Exception as exception :
             log.error(self.close, 'Not possible to close browser properly', exception)
 
-    @ClientMethod(requestClass=[str, str])
+    @SimpleClientMethod(requestClass=[str, str])
     def retrieveBrowserSession(self, session_id, executor_url):
         '''
         ###############################################################
@@ -248,7 +248,7 @@ class BrowserClient:
 
         return new_browser
 
-    @ClientMethod(requestClass=[str, str, DEFAULT_BOWSER_CLASS])
+    @SimpleClientMethod(requestClass=[str, str, DEFAULT_BOWSER_CLASS])
     def screeshotWebPage(self, screenshotName, url, browser) :
         browser.get(url)
         time.sleep(DEFAULT_WEBDRIVER_TIMEOUT_FRACTION)
@@ -264,7 +264,7 @@ class BrowserClient:
         # # browser.save_screenshot(path)  # has scrollbar
         # browser.find_element_by_tag_name('body').screenshot('ss.png')  # avoids scrollbar
 
-    @ClientMethod(requestClass=[str, DEFAULT_BOWSER_CLASS])
+    @SimpleClientMethod(requestClass=[str, DEFAULT_BOWSER_CLASS])
     def pasteToBrowser(self, screenshotName, browser, element=None):
         image = Image.open(screenshotName)
         output = BytesIO()

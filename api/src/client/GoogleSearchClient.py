@@ -1,6 +1,6 @@
 from python_helper import Constant as c
 from python_helper import StringHelper, EnvironmentHelper, SettingHelper, ObjectHelper, log, ReflectionHelper
-from python_framework import Client, ClientMethod
+from python_framework import SimpleClient, SimpleClientMethod
 
 from apiclient.discovery import build
 import requests
@@ -9,25 +9,25 @@ import bs4
 import GoogleSearchConstants
 from GoogleCredentials import GoogleCredentials
 
-@Client()
+@SimpleClient()
 class GoogleSearchClient:
 
     google = None
 
-    @ClientMethod(requestClass=[str, int, int])
+    @SimpleClientMethod(requestClass=[str, int, int])
     def rawTextSearch(self, search, start, ammount) :
         if self.google is None :
             self.google = build("customsearch", 'v1', developerKey=GoogleCredentials.CUSTOM_SEARCH_API_KEY).cse()
         result = self.google.list(q=search, cx=GoogleCredentials.CUSTOM_SEARCH_CSE_ID, lr='lang_pt', start=start, num=ammount).execute()
         return result.get('items', [])
 
-    @ClientMethod(requestClass=[str])
+    @SimpleClientMethod(requestClass=[str])
     def textSearch(self, link) :
         res = requests.get(link)
         soup = bs4.BeautifulSoup(res.content, "html.parser")
         return self.getText(self.getTag(link, soup.body))
 
-    @ClientMethod(requestClass=[str])
+    @SimpleClientMethod(requestClass=[str])
     def getText(self, tag) :
         text = StringHelper.join(
             [str(t) for t in tag.strings if StringHelper.isNotBlank(StringHelper.join(str(t).split(), character=c.BLANK).replace(c.SPACE, c.BLANK))],
@@ -41,7 +41,7 @@ class GoogleSearchClient:
                 text = text.replace(GoogleSearchConstants.TOKENT_TEXT_SEPARATOR, c.SPACE)
         return text
 
-    @ClientMethod(requestClass=[str])
+    @SimpleClientMethod(requestClass=[str])
     def getTag(self, link, soupBody=None) :
         result = None
         if ObjectHelper.isNotNone(link) :
@@ -56,7 +56,7 @@ class GoogleSearchClient:
                     break
         return result if ObjectHelper.isNotNone(result) else soupBody
 
-    @ClientMethod(requestClass=[[str]])
+    @SimpleClientMethod(requestClass=[[str]])
     def getResult(self, resultList) :
         return None if ObjectHelper.isEmpty(resultList) or (isinstance(resultList, bs4.element.ResultSet) and 0 == len(resultList)) else resultList[0]
 

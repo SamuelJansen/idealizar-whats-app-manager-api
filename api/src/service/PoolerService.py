@@ -15,7 +15,7 @@ import ContactDto
 
 WHATS_APP_URL = "https://web.whatsapp.com/"
 
-XPATH_IDEALIZAR_STUDENT_GROUP = '//div//div//span[@title="Idealizar SandBox - Test"]' ###- Idealizar - Estudantes ###- Groups
+XPATH_IDEALIZAR_STUDENT_GROUP = '//div//div//span[@title="Idealizar - Estudantes"]' ###- Idealizar - Estudantes ###- Groups Idealizar SandBox - Test
 XPATH_IDEALIZAR_BIRDMESSAGE_SANDBOX_GROUP = '//div//div//span//span[@title="+44 7418 310508"]' ###- Idealizar SandBox ###- Contact
 XPATH_GROUP_MESSAGE_SECTION = '//div//div//div[@aria-label="Message list. Press right arrow key on a message to open message context menu."]'
 XPATH_GROUP_MESSAGE_LIST = '//div[contains(@class,"focusable-list-item")]'

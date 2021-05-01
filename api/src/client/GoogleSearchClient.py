@@ -12,6 +12,7 @@ from GoogleCredentials import GoogleCredentials
 @SimpleClient()
 class GoogleSearchClient:
 
+    ###- https://gist.github.com/nikhilkumarsingh/5bce182ed57ae73f6cbde52fe846991b
     google = None
 
     @SimpleClientMethod(requestClass=[str, int, int])

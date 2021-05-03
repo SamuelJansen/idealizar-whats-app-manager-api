@@ -19,7 +19,7 @@ class ContactResponseDto :
         status = None,
         name = None
     ) :
-        self.id = id,
+        self.id = id
         self.key = key
         self.type = ContactType.map(type)
         self.status = ContactStatus.map(status)

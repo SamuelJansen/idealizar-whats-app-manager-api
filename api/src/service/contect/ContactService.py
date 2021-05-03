@@ -1,12 +1,17 @@
 from python_framework import Service, ServiceMethod
 
 from ContactStatus import ContactStatus
-import DateTimeUtil
 
-import Contact, ContactDto
+from model import Contact
+from dto import ContactDto
 
 @Service()
 class ContactService :
+
+    @ServiceMethod()
+    def findAll(self) :
+        modelList = self.repository.contact.findAll()
+        return self.mapper.contact.fromModelListToResponseDtoList(modelList)
 
     @ServiceMethod(requestClass=[ContactDto.ContactRequestDto])
     def safellyCreateOrUpdate(self, dto) :
@@ -31,9 +36,8 @@ class ContactService :
 
     @ServiceMethod(requestClass=[ContactDto.ContactRequestDto])
     def update(self, dto) :
-        model = self.findByKeyAndByStatus(dto.key, ContactStatus.ACTIVE)
+        model = self.repository.contact.findByKeyAndByStatus(dto.key, ContactStatus.ACTIVE)
         self.mapper.contact.overrideModelValuesFromRequestDto(model, dto)
-        model.updatedAt = DateTimeUtil.dateTimeNow()
         return self.repository.contact.save(model)
 
     @ServiceMethod(requestClass=[ContactDto.ContactRequestDto])

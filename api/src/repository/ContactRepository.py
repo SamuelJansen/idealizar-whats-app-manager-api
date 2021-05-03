@@ -1,7 +1,7 @@
 from python_helper import ObjectHelper
 from python_framework import SqlAlchemyProxy as sap
 from python_framework import Repository
-import Contact
+from model import Contact
 
 @Repository(model = Contact.Contact)
 class ContactRepository:

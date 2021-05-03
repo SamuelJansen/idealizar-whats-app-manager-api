@@ -1,5 +1,5 @@
 from python_framework import Controller, ControllerMethod, HttpStatus
-import ContactDto
+from dto import ContactDto
 
 @Controller(url = '/contact', tag='Contact', description='Contact controller')
 class ContactController:
@@ -13,6 +13,12 @@ class ContactController:
 
 @Controller(url = '/contact/batch', tag='Contact', description='Contact controller')
 class ContactBatchController:
+
+    @ControllerMethod(url = '/',
+        responseClass = [[ContactDto.ContactResponseDto]]
+    )
+    def get(self) :
+        return self.service.contact.findAll(), HttpStatus.OK
 
     @ControllerMethod(url = '/',
         requestClass = [[ContactDto.ContactRequestDto]],

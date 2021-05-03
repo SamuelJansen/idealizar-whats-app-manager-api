@@ -1,10 +1,11 @@
 from python_helper import ObjectHelper, StringHelper
+from python_framework import StaticConverter
 from python_framework import SqlAlchemyProxy as sap
 from ModelAssociation import CONTACT, MODEL
 
-import ContactType, ContactStatus
-import ContactConstants
-import DateTimeUtil
+from enumeration.contact import ContactType, ContactStatus
+from domain import ContactConstants
+from util import DateTimeUtil
 
 GIANT_STRING_SIZE = 16384
 BIG_STRING_SIZE = 4096
@@ -12,9 +13,6 @@ LARGE_STRING_SIZE = 1024
 STRING_SIZE = 512
 MEDIUM_STRING_SIZE = 128
 LITTLE_STRING_SIZE = 64
-
-def getGivenOrDefault(given, default) :
-    return default if ObjectHelper.isNone(given) else given
 
 class Contact(MODEL):
     __tablename__ = CONTACT
@@ -36,12 +34,13 @@ class Contact(MODEL):
         status = None,
         name = None
     ):
+        now = DateTimeUtil.dateTimeNow()
         self.id = id
         self.key = key
-        self.createdAt = getGivenOrDefault(DateTimeUtil.forcedlyGetDateTime(createdAt), DateTimeUtil.dateTimeNow())
-        self.updatedAt = getGivenOrDefault(DateTimeUtil.forcedlyGetDateTime(updatedAt), DateTimeUtil.dateTimeNow())
-        self.type = getGivenOrDefault(ContactType.ContactType.map(type), ContactConstants.DEFAULT_TYPE)
-        self.status = getGivenOrDefault(ContactStatus.ContactStatus.map(status), ContactConstants.DEFAULT_STATUS)
+        self.createdAt = StaticConverter.getValueOrDefault(DateTimeUtil.forcedlyGetDateTime(createdAt), now)
+        self.updatedAt = StaticConverter.getValueOrDefault(DateTimeUtil.forcedlyGetDateTime(updatedAt), now)
+        self.type = StaticConverter.getValueOrDefault(ContactType.ContactType.map(type), ContactConstants.DEFAULT_TYPE)
+        self.status = StaticConverter.getValueOrDefault(ContactStatus.ContactStatus.map(status), ContactConstants.DEFAULT_STATUS)
         self.name = name
 
     def __repr__(self):

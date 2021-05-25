@@ -4,7 +4,6 @@ api:
     server:
         scheme: http
         port: 5500
-        host: localhost
     security:
         secret: ${SECURITY_KEY:local-secret-key}
     database:
@@ -13,4 +12,4 @@ api:
             check_same_thread: False
 
 swagger:
-    host: ${api.server.host}:${api.server.port}
+    host: localhost:${api.server.port}

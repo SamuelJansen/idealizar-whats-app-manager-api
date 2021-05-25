@@ -35,12 +35,19 @@ class MessageRepository:
     def deleteById(self, id):
         self.repository.deleteByIdAndCommit(id, self.model)
 
-    def findAllByIdIn(self, idList) :
-        modelList = self.repository.session.query(self.model).filter(self.model.id.in_(idList)).all()
+    def findAllKeyIdIn(self, keyList) :
+        modelList = self.repository.session.query(self.model).filter(self.model.key.in_(keyList)).all()
         self.repository.session.commit()
         return modelList
 
-    def existsByMessageId(self, messageId) :
-        objectExists = self.repository.session.query(sap.exists().where(self.model.messageId == messageId)).one()[0]
+    def existsConversation(self, conversationKey) :
+        objectExists = self.repository.session.query(sap.exists().where(self.model.conversationKey == conversationKey)).one()[0]
         self.repository.session.commit()
         return objectExists
+
+    def findLastMessageKey(self, conversationKey) :
+        model = self.repository.session.query(self.model.key).filter(
+            self.model.conversationKey == conversationKey
+        ).order_by(self.model.postedAt.desc()).first()[0]
+        self.repository.session.commit()
+        return model

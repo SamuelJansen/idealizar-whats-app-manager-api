@@ -44,7 +44,7 @@ class PoolerService:
     @ServiceMethod()
     def inteigentLoop(self) :
         contactList = self.repository.contact.findAllByKeyIn([
-            '+55 51 8029-8228',
+            '+55 51 8029-8228'
             # '+55 51 8060-3925',
             # '+55 51 8559-9625',
             # '+55 51 9473-4741',

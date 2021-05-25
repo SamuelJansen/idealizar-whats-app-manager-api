@@ -19,6 +19,7 @@ class GoogleSearchClient:
     def rawTextSearch(self, search, start, ammount) :
         if self.google is None :
             self.google = build("customsearch", 'v1', developerKey=GoogleCredentials.CUSTOM_SEARCH_API_KEY).cse()
+        search = search if not search.startswith(GoogleSearchConstants.SEARCH_KEYWORD) else search[len(GoogleSearchConstants.SEARCH_KEYWORD):]
         result = self.google.list(q=search, cx=GoogleCredentials.CUSTOM_SEARCH_CSE_ID, lr='lang_pt', start=start, num=ammount).execute()
         return result.get('items', [])
 

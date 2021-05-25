@@ -1,5 +1,5 @@
 from python_helper import ObjectHelper, StringHelper
-from python_framework import StaticConverter
+from python_framework import ConverterStatic
 from python_framework import SqlAlchemyProxy as sap
 from ModelAssociation import CONTACT, MODEL
 
@@ -37,10 +37,10 @@ class Contact(MODEL):
         now = DateTimeUtil.dateTimeNow()
         self.id = id
         self.key = key
-        self.createdAt = StaticConverter.getValueOrDefault(DateTimeUtil.forcedlyGetDateTime(createdAt), now)
-        self.updatedAt = StaticConverter.getValueOrDefault(DateTimeUtil.forcedlyGetDateTime(updatedAt), now)
-        self.type = StaticConverter.getValueOrDefault(ContactType.ContactType.map(type), ContactConstants.DEFAULT_TYPE)
-        self.status = StaticConverter.getValueOrDefault(ContactStatus.ContactStatus.map(status), ContactConstants.DEFAULT_STATUS)
+        self.createdAt = ConverterStatic.getValueOrDefault(DateTimeUtil.forcedlyGetDateTime(createdAt), now)
+        self.updatedAt = ConverterStatic.getValueOrDefault(DateTimeUtil.forcedlyGetDateTime(updatedAt), now)
+        self.type = ConverterStatic.getValueOrDefault(ContactType.ContactType.map(type), ContactConstants.DEFAULT_TYPE)
+        self.status = ConverterStatic.getValueOrDefault(ContactStatus.ContactStatus.map(status), ContactConstants.DEFAULT_STATUS)
         self.name = name
 
     def __repr__(self):

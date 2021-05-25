@@ -11,12 +11,10 @@ from PoolingStatus import PoolingStatus
 import Message, MessageConstants
 import Session
 
-import GoogleSearchConstants
+from domain import GoogleSearchConstants
 import GoogleSearchDto
 
 import PoolerDto, ContactDto
-
-FIRST_ACCESS_TIMEOUT = 3
 
 @Service()
 class GoogleSearchService:
@@ -35,24 +33,29 @@ class GoogleSearchService:
 
     @ServiceMethod(requestClass=[str])
     def search(self, search) :
-        googleSearchResponseList = self.client.googleSearch.rawTextSearch(search, 3, 2)
+        googleSearchResponseList = self.client.googleSearch.rawTextSearch(search, 1, 10)
         dtoList = []
         for googleSearchResponse in googleSearchResponseList :
             title = googleSearchResponse.get('title')
             url = googleSearchResponse.get('link')
             snippet = googleSearchResponse.get('snippet')
             screenshotName = f'{str(time.time()).replace(c.DOT,c.BLANK)}.png'
-            self.takeScreenshot(screenshotName, url)
+            # self.takeScreenshot(screenshotName, url)
             dtoList.append(
                 GoogleSearchDto.GoogleSearchResponseDto(
                     title = title,
                     url = url,
                     snippet = snippet,
-                    suggestedText = f'''Title: {title.replace(c.NEW_LINE, c.SPACE)}{c.SPACE_DASH_SPACE *3}Link: {url}{c.SPACE_DASH_SPACE *3}Snipet: {snippet.replace(c.NEW_LINE, c.SPACE)}''',
+                    # suggestedText = f'''Title: {title.replace(c.NEW_LINE, c.SPACE)}{c.SPACE_DASH_SPACE *3}Link: {url}{c.SPACE_DASH_SPACE *3}Snipet: {snippet.replace(c.NEW_LINE, c.SPACE)}''',
+                    suggestedText = f'''*Title:* {title}{c.NEW_LINE}*Link:* {url}{c.NEW_LINE}*Snipet:* {snippet}''',
                     screenshotName = screenshotName
                 )
             )
         return dtoList
+
+    @ServiceMethod(requestClass=[str])
+    def isRequest(self, text) :
+        return ObjectHelper.isNotNone(str) and text.lower().startswith(GoogleSearchConstants.SEARCH_KEYWORD)
 
     @ServiceMethod(requestClass=[str])
     def openBrowserIfNedded(self, url) :
@@ -60,7 +63,7 @@ class GoogleSearchService:
             self.booting = True
             self.browser = self.client.browser.getNewBrowser()
             self.client.browser.accessUrl(url, self.browser)
-            time.sleep(FIRST_ACCESS_TIMEOUT)
+            time.sleep(GoogleSearchConstants.FIRST_ACCESS_TIMEOUT)
             self.booting = False
             self.available = True
 

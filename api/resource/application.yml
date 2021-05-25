@@ -20,7 +20,7 @@ api:
         host: 0.0.0.0
         port: 5500
         base-url: /idealizar-whats-app-manager-api
-        complete-url: ${api.server.scheme}://${api.server.host}:${api.server.port}${api.server.base-url}
+        complete-url: ${api.server.scheme}://${swagger.host}:${api.server.port}${api.server.base-url}
     # database:
         # dialect: ${DATABASE_DIALECT:}
         # driver: ${DATABASE_DRIVER:}
@@ -31,8 +31,12 @@ api:
         # port: ${DATABASE_PORT:}
         # schema: ${DATABASE_SCHEMA:}
 
+whats-app:
+    web:
+        base-url: "http://192.168.25.2:5100/idealizar-whats-app-web-api"
+
 swagger:
-    host: ${api.server.host}:${api.server.port}${api.server.base-url}
+    host: ${api.server.host}:${api.server.port}
     schemes: [${api.server.scheme}]
     info:
         title: {api.name}

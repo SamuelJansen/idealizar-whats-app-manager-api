@@ -1,5 +1,5 @@
 from python_helper import DateTimeHelper
-from python_framework import Mapper, MapperMethod, StaticConverter
+from python_framework import Mapper, MapperMethod, ConverterStatic
 from model import Contact
 from dto import ContactDto
 
@@ -36,12 +36,12 @@ class ContactMapper:
     @MapperMethod(requestClass=[Contact.Contact, ContactDto.ContactResponseDto])
     def overrideModelValuesFromRequestDto(self, model, dto, status=None) :
         model.type = dto.type
-        model.status = StaticConverter.getValueOrDefault(status, model.status)
+        model.status = ConverterStatic.getValueOrDefault(status, model.status)
         model.name = dto.name
         self.overrideDateData(model)
 
     @MapperMethod(requestClass=[Contact.Contact])
     def overrideDateData(self, model) :
         now = DateTimeHelper.dateTimeNow()
-        model.createdAt = StaticConverter.getValueOrDefault(model.createdAt, now)
+        model.createdAt = ConverterStatic.getValueOrDefault(model.createdAt, now)
         model.updatedAt = now

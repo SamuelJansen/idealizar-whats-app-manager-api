@@ -27,47 +27,62 @@ class Message(MODEL):
     __tablename__ = MESSAGE
 
     id = sap.Column(sap.Integer(), sap.Sequence(f'{__tablename__}{sap.ID}{sap.SEQ}'), primary_key=True)
-    messageId = sap.Column(sap.String(MEDIUM_STRING_SIZE))
-    pooledAt = sap.Column(sap.DateTime)
-    isPoolerMessage = sap.Column(sap.Boolean)
+    key = sap.Column(sap.String(MEDIUM_STRING_SIZE))
+    conversationKey = sap.Column(sap.String(MEDIUM_STRING_SIZE))
+    ownerKey = sap.Column(sap.String(MEDIUM_STRING_SIZE))
+    ownerInfo = sap.Column(sap.String(MEDIUM_STRING_SIZE))
 
-    owner = sap.Column(sap.String(MEDIUM_STRING_SIZE))
-    content = sap.Column(sap.String(BIG_STRING_SIZE))
+    postedAt = sap.Column(sap.DateTime)
+    scannedAt = sap.Column(sap.DateTime)
+    createdAt = sap.Column(sap.DateTime)
+    updatedAt = sap.Column(sap.DateTime)
 
-    ownerContent = sap.Column(sap.String(MEDIUM_STRING_SIZE))
+    text = sap.Column(sap.String(BIG_STRING_SIZE))
+
     originalAsText = sap.Column(sap.String(MEDIUM_STRING_SIZE))
     originalAsHtml = sap.Column(sap.String(MEDIUM_STRING_SIZE))
 
+    isPoolerMessage = sap.Column(sap.Boolean)
     poolingStatus = sap.Column(sap.String(LITTLE_STRING_SIZE), default=MessageConstants.DEFAULT_POOLING_STATUS)
+
     errorCount = sap.Column(sap.Integer(), default=MessageConstants.DEFAULT_ERROR_COUNT)
     errorListAsJson = sap.Column(sap.String(BIG_STRING_SIZE), default=MessageConstants.DEFAULT_ERROR_LIST_AS_JSON)
 
     def __init__(self,
         id = None,
-        messageId = None,
-        pooledAt = None,
-        isPoolerMessage = None,
-        owner = None,
-        content = None,
-        ownerContent = None,
+        key = None,
+        conversationKey = None,
+        ownerKey = None,
+        ownerInfo = None,
+        postedAt = None,
+        scannedAt = None,
+        createdAt = None,
+        updatedAt = None,
+        text = None,
         originalAsText = None,
         originalAsHtml = None,
+        isPoolerMessage = None,
         poolingStatus = None,
         errorCount = None,
         errorListAsJson = None
     ):
+        now = DateTimeUtil.dateTimeNow()
         self.id = id
-        self.messageId = getGivenOrDefault(messageId, getNewErrorId())
-        self.pooledAt = getGivenOrDefault(DateTimeUtil.forcedlyGetDateTime(pooledAt), DateTimeUtil.dateTimeNow())
-        self.isPoolerMessage = getGivenOrDefault(isPoolerMessage, MessageConstants.DEFAULT_IS_POOLER_MESSAGE)
-        self.owner = getGivenOrDefault(owner, MessageConstants.UNKNOWN_OWNER)
-        self.content = content
-        self.ownerContent = ownerContent
+        self.key = getGivenOrDefault(key, getNewErrorId())
+        self.ownerKey = getGivenOrDefault(ownerKey, MessageConstants.UNKNOWN_OWNER)
+        self.ownerInfo = ownerInfo
+        self.conversationKey = conversationKey
+        self.postedAt = getGivenOrDefault(DateTimeUtil.forcedlyGetDateTime(postedAt), now)
+        self.scannedAt = getGivenOrDefault(DateTimeUtil.forcedlyGetDateTime(scannedAt), now)
+        self.createdAt = getGivenOrDefault(DateTimeUtil.forcedlyGetDateTime(createdAt), now)
+        self.updatedAt = getGivenOrDefault(DateTimeUtil.forcedlyGetDateTime(updatedAt), now)
+        self.text = text
         self.originalAsText = originalAsText
         self.originalAsHtml = originalAsHtml
+        self.isPoolerMessage = getGivenOrDefault(isPoolerMessage, MessageConstants.DEFAULT_IS_POOLER_MESSAGE)
         self.poolingStatus = getGivenOrDefault(poolingStatus, MessageConstants.DEFAULT_POOLING_STATUS)
         self.errorCount = getGivenOrDefault(errorCount, MessageConstants.DEFAULT_ERROR_COUNT)
         self.errorListAsJson = errorListAsJson
 
     def __repr__(self):
-        return f'{self.__tablename__}(id: {self.id}, pooledAt: {self.pooledAt}, poolingStatus: {self.poolingStatus} owner: {self.owner}, content: {self.content}, errorCount: {self.errorCount})'
+        return f'{self.__tablename__}(id: {self.id}, scannedAt: {self.scannedAt}, poolingStatus: {self.poolingStatus} ownerKey: {self.ownerKey}, text: {self.text}, errorCount: {self.errorCount})'

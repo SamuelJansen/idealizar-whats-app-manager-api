@@ -10,7 +10,7 @@ BINARY_ENCODE_FINISH_DOUBLE_QUOTE = f'{c.DOUBLE_QUOTE}'
 @Helper()
 class Base64Helper :
 
-    @HelperMethod(requestClass=str)
+    @HelperMethod(requestClass=[str])
     def removeBinaryTextFromPayloadIfNedded(self, payload) :
         if payload.startswith(BINARY_ENDOCE_START_SINGLE_QUOTE) and payload.endswith(BINARY_ENCODE_FINISH_SINGLE_QUOTE) :
             return payload[2:-1]
@@ -20,11 +20,20 @@ class Base64Helper :
 
     @HelperMethod(requestClass=str)
     def encode(self, payload) :
-        return base64.b64encode(payload.encode(c.UTF_8))
+        try :
+            payload = payload.encode(c.UTF_8)
+        except Exception as exception :
+            pass
+        return base64.b64encode(payload)
 
-    @HelperMethod(requestClass=str)
+    @HelperMethod(requestClass=[str])
     def decode(self, payload) :
-        return base64.b64decode(payload).decode(c.UTF_8)
+        decoded = base64.b64decode(payload)
+        try :
+            decoded = decoded.decode(c.UTF_8)
+        except Exception as exception :
+            pass
+        return decoded
 
     @HelperMethod(requestClass=str)
     def encodeAndFilter(self, payload) :

@@ -30,10 +30,19 @@ api:
         # host: ${DATABASE_HOST:}
         # port: ${DATABASE_PORT:}
         # schema: ${DATABASE_SCHEMA:}
+idealizar:
+    whats-app:
+        web:
+            base-url: http://192.168.25.2:5100/idealizar-whats-app-web-api
+            request-timeout: 22
+    agenda:
+        base-url: http://192.168.25.2:5110/idealizar-agenda-api
+        request-timeout: 3
 
-whats-app:
-    web:
-        base-url: "http://192.168.25.2:5100/idealizar-whats-app-web-api"
+wit-ai:
+  app-version: 20210601
+  authorization: ${WIT_AI_AUTHORIZATION:}
+  base-url: https://api.wit.ai
 
 swagger:
     host: ${api.server.host}:${api.server.port}

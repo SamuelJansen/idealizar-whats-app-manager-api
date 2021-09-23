@@ -1,0 +1,17 @@
+print-status: False
+api:
+    server:
+        base-url: /dev-idealizar-agenda-api
+    security:
+        secret: ${SECURITY_KEY:dev-secret-key}
+    database:
+        dialect: ${DATABASE_DIALECT:sqlite}
+        settings:
+            check_same_thread: False
+
+agenda:
+    base-url: https://idealizar.glitch.me/dev-idealizar-agenda-api
+    request-timeout: 3
+
+swagger:
+    host: idealizar.glitch.me

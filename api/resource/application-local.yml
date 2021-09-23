@@ -1,5 +1,4 @@
 print-status: False
-
 api:
     server:
         scheme: http
@@ -10,6 +9,12 @@ api:
         dialect: ${DATABASE_DIALECT:sqlite}
         settings:
             check_same_thread: False
+idealizar:
+    agenda:
+        base-url: https://idealizar.glitch.me/dev-idealizar-agenda-api
+        # base-url: http://192.168.25.2:5110/dev-idealizar-agenda-api
+        request-timeout: 3
 
 swagger:
     host: localhost:${api.server.port}
+    # host: idealizar.glitch.me

@@ -36,8 +36,8 @@ class MessageService:
     def isNewKey(self, key) :
         return not self.repository.message.existsByKey(key)
 
-    @ServiceMethod(requestClass=[[Message.Message], dict, str])
-    def addScannedMessage(self, modelList, messageScanDto, conversationKey) :
+    @ServiceMethod(requestClass=[dict, str])
+    def buildModelFromMessageScanResponseDto(self, messageScanDto, conversationKey) :
         errorList = messageScanDto['errorList']
         soup = SoupUtil.getSoupFromHtml(messageScanDto['html'])
         ownerInfo = SoupUtil.getText(
@@ -51,22 +51,20 @@ class MessageService:
         now = DateTimeHelper.dateTimeNow()
         postedAt = ownerInfo.split(']')[0].split('[')[-1].strip().split()
         postedAt = f'{StringHelper.join(postedAt[-1].split("/")[::-1], character="-")} {postedAt[0]}:{str(now).split(":")[-1]}'
-        modelList.append(
-            Message.Message(
-                key = messageScanDto['key'],
-                conversationKey = conversationKey,
-                ownerKey = ownerKey,
-                postedAt = postedAt,
-                ownerInfo = ownerInfo,
-                scannedAt = now,
-                text = SoupUtil.getText(SoupUtil.findByPartialAttributeValue(soup, 'span', 'class', 'selectable-text copyable-text')),
-                originalAsText = SoupUtil.getText(soup),
-                originalAsHtml = messageScanDto['html'],
-                isPoolerMessage = 'message-out' in SoupUtil.getValue(SoupUtil.findTag(soup, 'div'), 'class'),
-                poolingStatus = PoolingStatus.SUCCESS,
-                errorCount = len(errorList),
-                errorListAsJson = Serializer.jsonifyIt(errorList)
-            )
+        return Message.Message(
+            key = messageScanDto['key'],
+            conversationKey = conversationKey,
+            ownerKey = ownerKey,
+            postedAt = postedAt,
+            ownerInfo = ownerInfo,
+            scannedAt = now,
+            text = SoupUtil.getText(SoupUtil.findByPartialAttributeValue(soup, 'span', 'class', 'selectable-text copyable-text')),
+            originalAsText = SoupUtil.getText(soup),
+            originalAsHtml = messageScanDto['html'],
+            isPoolerMessage = 'message-out' in SoupUtil.getValue(SoupUtil.findTag(soup, 'div'), 'class'),
+            poolingStatus = PoolingStatus.SUCCESS,
+            errorCount = len(errorList),
+            errorListAsJson = Serializer.jsonifyIt(errorList)
         )
 
     @ServiceMethod(requestClass=[str])

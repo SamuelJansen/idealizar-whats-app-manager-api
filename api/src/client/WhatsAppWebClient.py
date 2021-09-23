@@ -17,7 +17,7 @@ class WhatsAppWebClient :
     @ClientMethod()
     def scanNewMessages(self, scanRequestDto) :
         headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
-        response = requests.patch(SCAN_URL, headers=headers, json=scanRequestDto)
+        response = requests.patch(SCAN_URL, headers=headers, json=scanRequestDto, timeout=WhatsAppWebConfig.REQUEST_TIMEOUT)
         if 399 < response.status_code :
             raise GlobalException(
                 message = self.getErrorMessage(response),
@@ -29,7 +29,7 @@ class WhatsAppWebClient :
     @ClientMethod()
     def writeMessages(self, writeRequestDto) :
         headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
-        response = requests.patch(WRITE_URL, headers=headers, json=writeRequestDto)
+        response = requests.patch(WRITE_URL, headers=headers, json=writeRequestDto, timeout=WhatsAppWebConfig.REQUEST_TIMEOUT)
         if 399 < response.status_code :
             raise GlobalException(
                 message = self.getErrorMessage(response),
@@ -41,7 +41,7 @@ class WhatsAppWebClient :
     @ClientMethod()
     def getAuthenticationStatus(self) :
         headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
-        response = requests.get(AUTHENTICATION_STATUS_URL, headers=headers)
+        response = requests.get(AUTHENTICATION_STATUS_URL, headers=headers, timeout=WhatsAppWebConfig.REQUEST_TIMEOUT)
         if 399 < response.status_code :
             raise GlobalException(
                 message = self.getErrorMessage(response),

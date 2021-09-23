@@ -7,27 +7,33 @@ credentials:
     google-query:
         api-key: AIzaSyC1EHGbKXTI2Ru9DzTtYlFKM1XeoO_CCEc
         cse-id: 020b4cce176f6f908
+    wit-ai:
+        authorization: PSL5ZHZYBKRV2QOMTSZORFNWSQNG245K
 
-environment:
-    active-environment:
-        key: ACTIVE_ENVIRONMENT
-        value: local
-    # driver:
-    #     key: DATABASE_DRIVER
-    #     value: ${database.driver}
-    security:
-        key: SECURITY_KEY
-        value: not-secured-at-all
-    # database:
-    #     key: DATABASE_URL
-    #     value: ${database.dialect}+${database.driver}://${database.username}:${database.password}@${database.host}:${database.port}/${database.database}
-    enable-scheduler:
-        key: SCHEDULER_API_ENABLED
-        value: True
-    google-query:
-        api-key:
-            key: GOOGLE_CUSTOM_SEARCH_API_KEY
-            value: ${credentials.google-query.api-key}
-        cse-id:
-            key: GOOGLE_CUSTOM_SEARCH_CSE_ID
-            value: ${credentials.google-query.cse-id}
+  environment:
+      active-environment:
+          key: ACTIVE_ENVIRONMENT
+          value: local
+          # driver:
+          #     key: DATABASE_DRIVER
+          #     value: ${database.driver}
+      security:
+          key: SECURITY_KEY
+          value: not-secured-at-all
+          # database:
+          #     key: DATABASE_URL
+          #     value: ${database.dialect}+${database.driver}://${database.username}:${database.password}@${database.host}:${database.port}/${database.database}
+      enable-scheduler:
+          key: SCHEDULER_API_ENABLED
+          value: True
+      google-query:
+          api-key:
+              key: GOOGLE_CUSTOM_SEARCH_API_KEY
+              value: ${credentials.google-query.api-key}
+      cse-id:
+          key: GOOGLE_CUSTOM_SEARCH_CSE_ID
+          value: ${credentials.google-query.cse-id}
+      wit-ai:
+          authorization:
+              key: WIT_AI_AUTHORIZATION
+              value: ${credentials.wit-ai.authorization}

@@ -21,6 +21,7 @@ class GoogleSearchClient:
             self.google = build("customsearch", 'v1', developerKey=GoogleCredentials.CUSTOM_SEARCH_API_KEY).cse()
         search = search if not search.startswith(GoogleSearchConstants.SEARCH_KEYWORD) else search[len(GoogleSearchConstants.SEARCH_KEYWORD):]
         result = self.google.list(q=search, cx=GoogleCredentials.CUSTOM_SEARCH_CSE_ID, lr='lang_pt', start=start, num=ammount).execute()
+        log.debug(self.rawTextSearch, f'result: {result}')
         return result.get('items', [])
 
     @SimpleClientMethod(requestClass=[str])

@@ -99,6 +99,47 @@
                 }
             }
         },
+        "/conversation": {
+            "post": {
+                "parameters": [
+                    {
+                        "name": "body",
+                        "type": "object",
+                        "in": "body",
+                        "required": true,
+                        "description": null,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "$ref": "#/definitions/WriteRequestDto"
+                            }
+                        }
+                    }
+                ],
+                "tags": [
+                    "Conversation"
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "successful operation",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "$ref": "#/definitions/WriteResponseDto"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/login/qr-code": {
             "patch": {
                 "parameters": [],
@@ -308,6 +349,62 @@
                 "type"
             ]
         },
+        "WriteRequestDto": {
+            "type": "object",
+            "properties": {
+                "contact": {},
+                "messageWriteList": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "$ref": "#/definitions/MessageWriteRequestDto"
+                    }
+                }
+            },
+            "required": [
+                "contact",
+                "messageWriteList"
+            ]
+        },
+        "MessageWriteRequestDto": {
+            "type": "object",
+            "properties": {
+                "text": {
+                    "type": "object",
+                    "example": null
+                }
+            },
+            "required": [
+                "text"
+            ]
+        },
+        "WriteResponseDto": {
+            "type": "object",
+            "properties": {
+                "messageWriteList": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "$ref": "#/definitions/MessageWriteResponseDto"
+                    }
+                }
+            },
+            "required": [
+                "messageWriteList"
+            ]
+        },
+        "MessageWriteResponseDto": {
+            "type": "object",
+            "properties": {
+                "errorList": {
+                    "type": "array",
+                    "example": null
+                }
+            },
+            "required": [
+                "errorList"
+            ]
+        },
         "QRCodeRequestDto": {
             "type": "object",
             "properties": {
@@ -366,6 +463,11 @@
         {
             "name": "Contact",
             "description": "Contact controller. Contact controller",
+            "externalDocs": null
+        },
+        {
+            "name": "Conversation",
+            "description": "Conversation controller",
             "externalDocs": null
         },
         {

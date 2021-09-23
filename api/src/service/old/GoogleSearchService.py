@@ -34,23 +34,39 @@ class GoogleSearchService:
     @ServiceMethod(requestClass=[str])
     def search(self, search) :
         googleSearchResponseList = self.client.googleSearch.rawTextSearch(search, 1, 10)
+        # log.prettyPython(self.search, f'google query: {search}, googleSearchResponseList', googleSearchResponseList, logLevel=log.SUCCESS)
         dtoList = []
-        for googleSearchResponse in googleSearchResponseList :
-            title = googleSearchResponse.get('title')
-            url = googleSearchResponse.get('link')
-            snippet = googleSearchResponse.get('snippet')
-            screenshotName = f'{str(time.time()).replace(c.DOT,c.BLANK)}.png'
-            # self.takeScreenshot(screenshotName, url)
+        if ObjectHelper.isEmpty(googleSearchResponseList):
+            title = 'Sorry'
+            url = 'http://google.com.br'
+            snippet = 'No relevante results were found'
+            screenshotName = f'none.png'
             dtoList.append(
                 GoogleSearchDto.GoogleSearchResponseDto(
                     title = title,
                     url = url,
                     snippet = snippet,
-                    # suggestedText = f'''Title: {title.replace(c.NEW_LINE, c.SPACE)}{c.SPACE_DASH_SPACE *3}Link: {url}{c.SPACE_DASH_SPACE *3}Snipet: {snippet.replace(c.NEW_LINE, c.SPACE)}''',
                     suggestedText = f'''*Title:* {title}{c.NEW_LINE}*Link:* {url}{c.NEW_LINE}*Snipet:* {snippet}''',
                     screenshotName = screenshotName
                 )
             )
+        else:
+            for googleSearchResponse in googleSearchResponseList :
+                title = googleSearchResponse.get('title')
+                url = googleSearchResponse.get('link')
+                snippet = googleSearchResponse.get('snippet')
+                screenshotName = f'{str(time.time()).replace(c.DOT,c.BLANK)}.png'
+                # self.takeScreenshot(screenshotName, url)
+                dtoList.append(
+                    GoogleSearchDto.GoogleSearchResponseDto(
+                        title = title,
+                        url = url,
+                        snippet = snippet,
+                        # suggestedText = f'''Title: {title.replace(c.NEW_LINE, c.SPACE)}{c.SPACE_DASH_SPACE *3}Link: {url}{c.SPACE_DASH_SPACE *3}Snipet: {snippet.replace(c.NEW_LINE, c.SPACE)}''',
+                        suggestedText = f'''*Title:* {title}{c.NEW_LINE}*Link:* {url}{c.NEW_LINE}*Snipet:* {snippet}''',
+                        screenshotName = screenshotName
+                    )
+                )
         return dtoList
 
     @ServiceMethod(requestClass=[str])

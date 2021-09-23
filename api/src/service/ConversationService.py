@@ -1,13 +1,14 @@
 import time
 from python_helper import Constant as c
 from python_helper import ObjectHelper, log, StringHelper, DateTimeHelper
-from python_framework import Service, ServiceMethod
+from python_framework import Service, ServiceMethod, Serializer
 
 import DateTimeUtil
 from util import SoupUtil
 
 from domain import ConversationConstants, MessageConstants
 
+from dto import WriteDto
 import Message
 
 import PoolerDto, ContactDto
@@ -30,24 +31,29 @@ class ConversationService:
             try :
                 contactList = self.repository.contact.findAllByKeyIn([
                     '+55 51 8029-8228',
-                    '+55 51 3239-0620'
+                    'Ciência de Dados e IA'
                 ])
-                idealizarHB = self.repository.contact.findByKey('Idealizar SandBox - HB')
-                messageBird = self.repository.contact.findByKey('Idealizar SandBox') ###- self.repository.contact.findByKey('+44 7418 310508')
-                whatsAppAssistant = self.repository.contact.findByKey('WhatsApp Assistant')
-                self.poolMessagesFromOriginToDestiny(
-                    self.mapper.contact.fromModelListToRequestDtoList(contactList),
-                    self.mapper.contact.fromModelToRequestDto(idealizarHB)
-                )
-                self.poolMessagesFromOriginToDestiny(
-                    self.mapper.contact.fromModelListToRequestDtoList([idealizarHB]),
-                    self.mapper.contact.fromModelToRequestDto(messageBird)
-                )
-                self.poolMessagesFromOriginToDestiny(
-                    self.mapper.contact.fromModelListToRequestDtoList([messageBird]),
-                    self.mapper.contact.fromModelToRequestDto(idealizarHB)
-                )
-                self.getMessageModelList(self.mapper.contact.fromModelListToRequestDtoList([whatsAppAssistant]), replyGoogleSearch=True)
+
+                # idealizarHB = self.repository.contact.findByKey('Idealizar SandBox - HB')
+                # messageBird = self.repository.contact.findByKey('Idealizar SandBox') ###- self.repository.contact.findByKey('+44 7418 310508')
+                # whatsAppAssistant = self.repository.contact.findByKey('WhatsApp Assistant')
+                # idealizarEstudantes = self.repository.contact.findByKey('Idealizar - Estudantes')
+
+                # self.poolMessagesFromOriginToDestiny(
+                #     self.mapper.contact.fromModelListToRequestDtoList(contactList),
+                #     self.mapper.contact.fromModelToRequestDto(idealizarHB)
+                # )
+                # self.poolMessagesFromOriginToDestiny(
+                #     self.mapper.contact.fromModelListToRequestDtoList([idealizarHB]),
+                #     self.mapper.contact.fromModelToRequestDto(messageBird)
+                # )
+                # self.poolMessagesFromOriginToDestiny(
+                #     self.mapper.contact.fromModelListToRequestDtoList([messageBird]),
+                #     self.mapper.contact.fromModelToRequestDto(idealizarHB)
+                # )
+                self.getMessageModelList(self.mapper.contact.fromModelListToRequestDtoList(contactList), replyGoogleSearch=True)
+                # self.getMessageModelList(self.mapper.contact.fromModelListToRequestDtoList([whatsAppAssistant]), replyGoogleSearch=True)
+                # self.getMessageModelList(self.mapper.contact.fromModelListToRequestDtoList([idealizarEstudantes]), replyGoogleSearch=True)
             except Exception as exception :
                 log.failure(self.inteligentLoop, 'Error in conversation call', exception)
             self.simultaneousRequests -= 1
@@ -63,7 +69,7 @@ class ConversationService:
               "type": destiny.type,
               "accessTime": 0
             },
-            'messageWriteList': [{'text':f'{m.ownerInfo}{c.COLON}{c.NEW_LINE}{m.text}'} for m in messageModelList if not m.isPoolerMessage and not self.service.googleSearch.isRequest(m.text)]
+            'messageWriteList': [{'text':f'{m.ownerInfo}{c.NEW_LINE}{m.text}'} for m in messageModelList if not m.isPoolerMessage and not self.service.googleSearch.isRequest(m.text)]
         }
         # log.prettyPython(self.poolMessagesFromOriginToDestiny, 'Error list', writeResponseDto['messageWriteList'], logLevel=log.DEBUG)
         writeResponseDto = self.service.message.writeMessages(writeRequestDto)
@@ -88,26 +94,83 @@ class ConversationService:
             # log.prettyPython(self.poolMessagesFromOriginToDestiny, 'scanResponseDto', scanResponseDto, logLevel=log.DEBUG)
             messageScanDtoList = [] if ObjectHelper.isNone(scanResponseDto) or 'messageScanList' not in scanResponseDto else scanResponseDto['messageScanList']
             for messageScanDto in messageScanDtoList :
-                self.service.message.addScannedMessage(innerMessageModelList, messageScanDto, contact.key)
+                messageModel = self.service.message.buildModelFromMessageScanResponseDto(messageScanDto, contact.key)
+                innerMessageModelList.append(messageModel)
             self.service.message.createAll(innerMessageModelList)
             messageModelList += innerMessageModelList
             if replyGoogleSearch :
                 self.answareGoogleSearch(innerMessageModelList, contact)
+            self.answareWitAiQuestion(innerMessageModelList, contact)
         return messageModelList
 
     @ServiceMethod(requestClass=[[Message.Message], ContactDto.ContactRequestDto])
     def answareGoogleSearch(self, messageModelList, contact) :
         for messageModel in messageModelList :
-            googleSearchList = []
+            googleResponse = None
             if not messageModel.isPoolerMessage and self.service.googleSearch.isRequest(messageModel.text) :
-                googleSearchList.append({'text':StringHelper.join([gs.suggestedText for gs in self.service.googleSearch.search(messageModel.text)], 3*c.NEW_LINE)})
-            if ObjectHelper.isNotEmpty(googleSearchList) :
-                googleWriteRequestDto = {
+                writeMessageRequestDto = {'text':StringHelper.join([gs.suggestedText for gs in self.service.googleSearch.search(messageModel.text)], 3*c.NEW_LINE)}
+                if ObjectHelper.isNotNone(writeMessageRequestDto) :
+                    writeRequestDto = {
+                        "contact": {
+                          "key": contact.key,
+                          "type": contact.type,
+                          "accessTime": 0
+                        },
+                        'messageWriteList': [writeMessageRequestDto]
+                    }
+                    self.service.message.writeMessages(writeRequestDto)
+
+    @ServiceMethod(requestClass=[[Message.Message], ContactDto.ContactRequestDto])
+    def answareWitAiQuestion(self, messageModelList, contact) :
+        for messageModel in messageModelList :
+            if not messageModel.isPoolerMessage :
+                witAiResponse = self.service.witAi.evaluateMessageText(messageModel)
+                log.prettyPython(self.answareWitAiQuestion, 'witAiResponse', witAiResponse.__dict__, logLevel=log.SUCCESS)
+                if 0 < len(witAiResponse.intentList) :
+                    # print(witAiResponse.__dict__)
+                    if 'agenda' == witAiResponse.intentList[0]['name'] and ObjectHelper.isNotEmpty([r for r in witAiResponse.entityDictionary.get('wit$agenda_entry:agenda_entry', []) if 'reunião' == r.get('body', c.BLANK).lower() and r['confidence'] > .92]):
+                        import requests
+                        from config import IdealizaAgendaApiConfig
+                        resp = requests.get(
+                            f'{IdealizaAgendaApiConfig.BASE_URL}/agenda/ai',
+                            headers = {'Content-type': 'application/json', 'Accept': 'text/plain'},
+                            timeout = IdealizaAgendaApiConfig.REQUEST_TIMEOUT
+                        )
+                        print(resp.json())
+                        # print(type(resp.json()))
+                        writeMessageRequestDto = {'text': StringHelper.join(
+                            [f"Date: {r['beginAtDate']} {r['beginAtTime']}{c.NEW_LINE}About: {r['notes']}{c.NEW_LINE}Hoster: {r['hoster']}{c.NEW_LINE}Url: {r['url']}" for r in resp.json()],
+                            character = 2*c.NEW_LINE
+                        )}
+                        # print(writeMessageRequestDto)
+                        if ObjectHelper.isNotNone(writeMessageRequestDto) :
+                            writeRequestDto = {
+                                "contact": {
+                                  "key": contact.key,
+                                  "type": contact.type,
+                                  "accessTime": 0
+                                },
+                                'messageWriteList': [writeMessageRequestDto]
+                            }
+                            self.service.message.writeMessages(writeRequestDto)
+
+    @ServiceMethod()
+    def checkAndInform(self) :
+        import requests
+        possiblePresentCall = requests.get('https://idealizar.glitch.me/dev-idealizar-agenda-api/agenda/present', timeout=3)
+        responseList = []
+        try :
+            if possiblePresentCall and 399 >= possiblePresentCall.status_code :
+                agendaRequestDto = possiblePresentCall.json()
+                writeRequestDto = {
                     "contact": {
-                      "key": contact.key,
-                      "type": contact.type,
+                      "key": 'Idealizar - Estudantes',
+                      "type": 'GROUP',
                       "accessTime": 0
                     },
-                    'messageWriteList': googleSearchList
+                    'messageWriteList': [{'text':f"Date: {agendaRequestDto['beginAtDate']} {agendaRequestDto['beginAtTime']}{c.NEW_LINE}About: {agendaRequestDto['notes']}{c.NEW_LINE}Hoster: {agendaRequestDto['hoster']}{c.NEW_LINE}Url: {agendaRequestDto['url']}"}]
                 }
-                self.service.message.writeMessages(googleWriteRequestDto)
+                responseList.append(self.service.message.writeMessages(writeRequestDto))
+        except Exception as exception :
+            log.failure(self.checkAndInform, 'Error in checkAndInform', exception)
+        return Serializer.convertFromJsonToObject(responseList, [[WriteDto.WriteResponseDto]])
